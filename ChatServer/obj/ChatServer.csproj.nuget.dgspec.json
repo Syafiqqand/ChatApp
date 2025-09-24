@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {}
+    "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {}
   },
   "projects": {
-    "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {
+    "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
+        "projectUniqueName": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
         "projectName": "ChatServer",
-        "projectPath": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
+        "projectPath": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
         "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\obj\\",
+        "outputPath": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",

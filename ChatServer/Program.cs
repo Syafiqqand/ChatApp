@@ -11,7 +11,7 @@ namespace ChatServer
 {
     public class Message
     {
-        public string Type { get; set; } = ""; // msg, join, leave, sys, userlist
+        public string Type { get; set; } = "";
         public string From { get; set; } = "";
         public string To { get; set; } = "";
         public string Text { get; set; } = "";
@@ -29,6 +29,7 @@ namespace ChatServer
     {
         private static List<ClientHandler> clients = new List<ClientHandler>();
         private static TcpListener server = null!;
+        private static readonly object clientsLock = new object();
 
         static async Task Main(string[] args)
         {
@@ -60,45 +61,54 @@ namespace ChatServer
             ClientHandler? handler = null;
             try
             {
-                handler = new ClientHandler 
-                { 
-                    Client = client, 
-                    Stream = client.GetStream() 
+                handler = new ClientHandler
+                {
+                    Client = client,
+                    Stream = client.GetStream()
                 };
 
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[4096];
                 int bytesRead;
 
                 while ((bytesRead = await handler.Stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                 {
                     string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    var message = JsonSerializer.Deserialize<Message>(json);
-
-                    if (message == null) continue;
-
-                    switch (message.Type)
+                    var parts = json.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var part in parts)
                     {
-                        case "join":
-                            handler.Username = message.From;
-                            clients.Add(handler);
-                            Console.WriteLine($"{message.From} connected");
-                            
-                            // Broadcast ke semua client tentang user baru
-                            await BroadcastSystemMessage($"{message.From} joined the chat");
-                            // Update daftar user semua client
-                            await BroadcastUserList();
-                            break;
+                        var message = JsonSerializer.Deserialize<Message>(part);
+                        if (message == null) continue;
 
-                        case "msg":
-                            await BroadcastMessage(message);
-                            break;
-                        
-                        case "leave":
-                            if (!string.IsNullOrEmpty(handler.Username))
-                            {
-                                await BroadcastSystemMessage($"{handler.Username} left the chat");
-                            }
-                            break;
+                        switch (message.Type)
+                        {
+                            case "join":
+                                handler.Username = message.From;
+                                lock (clientsLock)
+                                {
+                                    clients.Add(handler);
+                                }
+                                Console.WriteLine($"{message.From} connected");
+
+                                // Kirim daftar user khusus ke client yang baru
+                                await SendUserListToClient(handler);
+
+                                // Info system + update semua
+                                await BroadcastSystemMessage($"{message.From} joined the chat");
+                                await BroadcastUserList();
+                                break;
+
+                            case "msg":
+                                await BroadcastMessage(message);
+                                break;
+
+                            case "leave":
+                                // Hapus broadcast di sini untuk menghindari duplikasi.
+                                // Biarkan proses penghapusan dan broadcast terjadi di blok finally
+                                // sehingga hanya satu notifikasi "left" yang dikirim.
+                                Console.WriteLine($"{handler.Username} requested leave");
+                                // Optionally, bisa melakukan tindakan lain, tapi jangan broadcast lagi di sini.
+                                break;
+                        }
                     }
                 }
             }
@@ -110,13 +120,17 @@ namespace ChatServer
             {
                 if (handler != null)
                 {
-                    clients.Remove(handler);
+                    // Hapus handler dan broadcast sekali tentang left
+                    lock (clientsLock)
+                    {
+                        clients.Remove(handler);
+                    }
                     if (!string.IsNullOrEmpty(handler.Username))
                     {
                         await BroadcastSystemMessage($"{handler.Username} left the chat");
                     }
-                    await BroadcastUserList(); 
-                    
+                    await BroadcastUserList();
+
                     try
                     {
                         handler.Stream?.Close();
@@ -130,13 +144,19 @@ namespace ChatServer
         static async Task BroadcastMessage(Message message)
         {
             message.Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            
-            string json = JsonSerializer.Serialize(message);
+
+            string json = JsonSerializer.Serialize(message) + "\n";
             byte[] data = Encoding.UTF8.GetBytes(json);
+
+            List<ClientHandler> snapshot;
+            lock (clientsLock)
+            {
+                snapshot = clients.ToList();
+            }
 
             var clientsToRemove = new List<ClientHandler>();
 
-            foreach (var client in clients.ToList())
+            foreach (var client in snapshot)
             {
                 try
                 {
@@ -151,9 +171,13 @@ namespace ChatServer
                 }
             }
 
-            foreach (var client in clientsToRemove)
+            if (clientsToRemove.Count > 0)
             {
-                clients.Remove(client);
+                lock (clientsLock)
+                {
+                    foreach (var c in clientsToRemove)
+                        clients.Remove(c);
+                }
             }
         }
 
@@ -181,12 +205,19 @@ namespace ChatServer
                 Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
 
-            string json = JsonSerializer.Serialize(userListMessage);
+            string json = JsonSerializer.Serialize(userListMessage) + "\n";
             byte[] data = Encoding.UTF8.GetBytes(json);
 
-            if (clientHandler.Stream != null && clientHandler.Stream.CanWrite)
+            try
             {
-                await clientHandler.Stream.WriteAsync(data, 0, data.Length);
+                if (clientHandler.Stream != null && clientHandler.Stream.CanWrite)
+                {
+                    await clientHandler.Stream.WriteAsync(data, 0, data.Length);
+                }
+            }
+            catch
+            {
+                // ignore write errors here; broadcast will handle removal if needed
             }
         }
 
@@ -206,11 +237,14 @@ namespace ChatServer
 
         static List<string> GetOnlineUsernames()
         {
-            return clients
-                .Where(c => !string.IsNullOrEmpty(c.Username))
-                .Select(c => c.Username)
-                .Distinct()
-                .ToList();
+            lock (clientsLock)
+            {
+                return clients
+                    .Where(c => !string.IsNullOrEmpty(c.Username))
+                    .Select(c => c.Username)
+                    .Distinct()
+                    .ToList();
+            }
         }
     }
 }

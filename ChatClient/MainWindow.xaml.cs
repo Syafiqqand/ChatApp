@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace ChatClient
 {
@@ -43,7 +44,7 @@ namespace ChatClient
 
             if (string.IsNullOrWhiteSpace(txtUsername.Text))
             {
-                MessageBox.Show("Please enter a username before connecting.", "Username Required", 
+                MessageBox.Show("Please enter a username before connecting.", "Username Required",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtUsername.Focus();
                 return;
@@ -51,7 +52,7 @@ namespace ChatClient
 
             if (txtUsername.Text.Contains(":") || txtUsername.Text.Contains("/") || txtUsername.Text.Length > 20)
             {
-                MessageBox.Show("Username cannot contain ':' or '/' and must be less than 20 characters.", 
+                MessageBox.Show("Username cannot contain ':' or '/' and must be less than 20 characters.",
                               "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtUsername.Focus();
                 return;
@@ -62,18 +63,17 @@ namespace ChatClient
                 client = new TcpClient();
                 await client.ConnectAsync(txtServerIP.Text, int.Parse(txtPort.Text));
                 stream = client.GetStream();
-                isConnected = true;
 
+                isConnected = true;
                 UpdateConnectionStatus(true);
+                _ = Task.Run(ReceiveMessagesAsync);
 
                 var joinMsg = CreateMessage("join", $"{txtUsername.Text} joined the chat");
                 await SendMessageAsync(joinMsg);
-
-                _ = Task.Run(ReceiveMessagesAsync);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error", 
+                MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -105,7 +105,7 @@ namespace ChatClient
         private void Disconnect()
         {
             isConnected = false;
-            
+
             try
             {
                 stream?.Close();
@@ -114,7 +114,7 @@ namespace ChatClient
             catch { }
 
             UpdateConnectionStatus(false);
-            
+
             onlineUsers.Clear();
             UpdateOnlineUsersList();
         }
@@ -141,7 +141,7 @@ namespace ChatClient
             txtMessage.Clear();
 
             Message message = CreateMessage("msg", messageText);
-            
+
             await SendMessageAsync(message);
         }
 
@@ -150,14 +150,14 @@ namespace ChatClient
             try
             {
                 if (stream == null) return;
-                
-                string json = JsonSerializer.Serialize(message);
+
+                string json = JsonSerializer.Serialize(message) + "\n"; 
                 byte[] data = Encoding.UTF8.GetBytes(json);
                 await stream.WriteAsync(data, 0, data.Length);
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => 
+                Dispatcher.Invoke(() =>
                 {
                     AddMessage("System", $"Send error: {ex.Message}");
                     Disconnect();
@@ -170,41 +170,51 @@ namespace ChatClient
             if (stream == null) return;
 
             byte[] buffer = new byte[4096];
+            var sb = new StringBuilder();
 
             while (isConnected && client != null && client.Connected)
             {
                 try
                 {
                     int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    if (bytesRead == 0) 
+                    if (bytesRead == 0)
                     {
                         Dispatcher.Invoke(() => Disconnect());
                         break;
                     }
 
-                    string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    var messages = json.Split('\n');
+                    string chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    sb.Append(chunk);
 
-                    foreach (var messageJson in messages)
+                    string all = sb.ToString();
+                    int newlineIndex;
+                    while ((newlineIndex = all.IndexOf('\n')) != -1)
                     {
-                        if (string.IsNullOrWhiteSpace(messageJson)) continue;
-
-                        try
+                        string line = all.Substring(0, newlineIndex).Trim();
+                        if (!string.IsNullOrEmpty(line))
                         {
-                            var message = JsonSerializer.Deserialize<Message>(messageJson);
-                            if (message != null)
+                            try
                             {
-                                Dispatcher.Invoke(() => ProcessMessage(message));
+                                var message = JsonSerializer.Deserialize<Message>(line);
+                                if (message != null)
+                                {
+                                    Dispatcher.Invoke(() => ProcessMessage(message));
+                                }
                             }
+                            catch (JsonException) { /* skip invalid json fragment */ }
                         }
-                        catch (JsonException) { }
+                        all = all.Substring(newlineIndex + 1);
                     }
+
+                    // keep leftover partial
+                    sb.Clear();
+                    sb.Append(all);
                 }
                 catch (Exception ex)
                 {
                     if (isConnected)
                     {
-                        Dispatcher.Invoke(() => 
+                        Dispatcher.Invoke(() =>
                         {
                             AddMessage("System", $"Connection error: {ex.Message}");
                             Disconnect();
@@ -227,7 +237,7 @@ namespace ChatClient
                     break;
             }
         }
-        
+
         private void UpdateOnlineUsersList(string userListJson = "")
         {
             try
@@ -238,7 +248,7 @@ namespace ChatClient
                 }
 
                 lstOnlineUsers.Items.Clear();
-                
+
                 var usersToShow = onlineUsers
                     .Where(u => !string.IsNullOrEmpty(u))
                     .OrderBy(u => u)
@@ -249,7 +259,7 @@ namespace ChatClient
                     lstOnlineUsers.Items.Add(user);
                 }
 
-                this.Title = $"Chat Client - Online: {usersToShow.Count} users"; 
+                this.Title = $"Chat Client - Online: {usersToShow.Count} users";
             }
             catch (Exception ex)
             {
