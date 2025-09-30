@@ -1,32 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {}
+    "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {}
   },
   "projects": {
-    "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {
+    "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
+        "projectUniqueName": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
         "projectName": "ChatServer",
-        "projectPath": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
+        "projectPath": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
         "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\obj\\",
+        "outputPath": "c:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net7.0"
+          "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net7.0": {
-            "targetAlias": "net7.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {}
           }
         },
@@ -43,8 +41,8 @@
         "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "imports": [
             "net461",
             "net462",
@@ -56,30 +54,12 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -4,6 +4,6 @@
     "\\ChatClient",
     "\\ChatServer"
   ],
-  "SelectedNode": "\\ChatClient\\MainWindow.xaml.cs",
+  "SelectedNode": "\\ChatServer",
   "PreviewInSolutionExplorer": false
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// MainWindow.xaml.cs
+using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -8,7 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Windows.Input;
 
 namespace ChatClient
 {
@@ -17,10 +18,20 @@ namespace ChatClient
         private TcpClient? client;
         private NetworkStream? stream;
         private bool isConnected = false;
-        private List<string> onlineUsers = new List<string>();
+
+        // Menggunakan Dictionary untuk menyimpan user online: <UID, Username>
+        private Dictionary<string, string> onlineUsers = new Dictionary<string, string>();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            txtUsername.Text = "";
+            txtUsername.Focus();
+        }
 
         public Message CreateMessage(string type, string text, string to = "")
         {
+            // Klien hanya mengirimkan username. UID akan di-assign oleh server.
             return new Message
             {
                 Type = type,
@@ -31,29 +42,20 @@ namespace ChatClient
             };
         }
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            txtUsername.Text = "";
-            txtUsername.Focus();
-        }
-
         private async void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             if (isConnected) return;
 
             if (string.IsNullOrWhiteSpace(txtUsername.Text))
             {
-                MessageBox.Show("Please enter a username before connecting.", "Username Required",
-                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter a username before connecting.", "Username Required", MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtUsername.Focus();
                 return;
             }
 
             if (txtUsername.Text.Contains(":") || txtUsername.Text.Contains("/") || txtUsername.Text.Length > 20)
             {
-                MessageBox.Show("Username cannot contain ':' or '/' and must be less than 20 characters.",
-                              "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Username cannot contain ':' or '/' and must be less than 20 characters.", "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtUsername.Focus();
                 return;
             }
@@ -73,8 +75,7 @@ namespace ChatClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Connection failed: {ex.Message}", "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -84,6 +85,9 @@ namespace ChatClient
             btnDisconnect.IsEnabled = connected;
             txtMessage.IsEnabled = connected;
             btnSend.IsEnabled = connected;
+            txtServerIP.IsEnabled = !connected;
+            txtPort.IsEnabled = !connected;
+            txtUsername.IsEnabled = !connected;
             txtStatus.Text = connected ? "Connected" : "Disconnected";
             txtStatus.Foreground = connected ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         }
@@ -124,9 +128,9 @@ namespace ChatClient
             await SendChatMessage();
         }
 
-        private async void txtMessage_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private async void txtMessage_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == System.Windows.Input.Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 await SendChatMessage();
             }
@@ -139,9 +143,9 @@ namespace ChatClient
 
             string messageText = txtMessage.Text.Trim();
             txtMessage.Clear();
+            txtMessage.Focus();
 
             Message message = CreateMessage("msg", messageText);
-
             await SendMessageAsync(message);
         }
 
@@ -149,9 +153,9 @@ namespace ChatClient
         {
             try
             {
-                if (stream == null) return;
+                if (stream == null || !stream.CanWrite) return;
 
-                string json = JsonSerializer.Serialize(message) + "\n"; 
+                string json = JsonSerializer.Serialize(message) + "\n";
                 byte[] data = Encoding.UTF8.GetBytes(json);
                 await stream.WriteAsync(data, 0, data.Length);
             }
@@ -205,19 +209,14 @@ namespace ChatClient
                         }
                         all = all.Substring(newlineIndex + 1);
                     }
-
                     sb.Clear();
                     sb.Append(all);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (isConnected)
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            AddMessage("System", $"Connection error: {ex.Message}");
-                            Disconnect();
-                        });
+                        Dispatcher.Invoke(() => Disconnect());
                     }
                     break;
                 }
@@ -243,12 +242,13 @@ namespace ChatClient
             {
                 if (!string.IsNullOrEmpty(userListJson))
                 {
-                    onlineUsers = JsonSerializer.Deserialize<List<string>>(userListJson) ?? new List<string>();
+                    onlineUsers = JsonSerializer.Deserialize<Dictionary<string, string>>(userListJson) ?? new Dictionary<string, string>();
                 }
 
                 lstOnlineUsers.Items.Clear();
 
-                var usersToShow = onlineUsers
+                // Ambil semua username (Values), urutkan, lalu tampilkan
+                var usersToShow = onlineUsers.Values
                     .Where(u => !string.IsNullOrEmpty(u))
                     .OrderBy(u => u)
                     .ToList();
@@ -258,7 +258,8 @@ namespace ChatClient
                     lstOnlineUsers.Items.Add(user);
                 }
 
-                this.Title = $"Chat Client - Online: {usersToShow.Count} users";
+                // Judul window sekarang menampilkan jumlah koneksi unik
+                this.Title = $"Chat Client - Online: {onlineUsers.Count} users";
             }
             catch (Exception ex)
             {
@@ -275,30 +276,31 @@ namespace ChatClient
                 case "sys":
                     displayText += $"SYSTEM: {message.Text}";
                     break;
-                case "join":
-                    displayText += $"{message.From} joined";
-                    break;
-                case "leave":
-                    displayText += $"{message.From} left";
-                    break;
+                case "join": // Pesan join/leave tidak lagi ditampilkan secara manual,
+                case "leave":// server mengirimkannya sebagai pesan 'sys'
+                    return;
                 default:
                     displayText += $"{message.From}: {message.Text}";
                     break;
             }
-
             AddMessage(message.From, displayText);
         }
 
         private void AddMessage(string sender, string text)
         {
             lstMessages.Items.Add(text);
-            lstMessages.ScrollIntoView(lstMessages.Items[lstMessages.Items.Count - 1]);
+            if (lstMessages.Items.Count > 0)
+            {
+                lstMessages.ScrollIntoView(lstMessages.Items[lstMessages.Items.Count - 1]);
+            }
         }
     }
 
+    // Definisi class Message agar file ini bisa berdiri sendiri.
     public class Message
     {
         public string Type { get; set; } = "";
+        public string FromUID { get; set; } = "";
         public string From { get; set; } = "";
         public string To { get; set; } = "";
         public string Text { get; set; } = "";

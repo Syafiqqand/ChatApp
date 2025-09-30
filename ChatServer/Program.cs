@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Program.cs
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +13,8 @@ namespace ChatServer
     public class Message
     {
         public string Type { get; set; } = "";
-        public string From { get; set; } = "";
+        public string FromUID { get; set; } = ""; // ID Unik Pengirim
+        public string From { get; set; } = "";    // Username Pengirim
         public string To { get; set; } = "";
         public string Text { get; set; } = "";
         public long Ts { get; set; }
@@ -21,6 +23,7 @@ namespace ChatServer
     public class ClientHandler
     {
         public TcpClient Client { get; set; } = null!;
+        public string UID { get; set; } = ""; // Properti untuk menyimpan ID Unik
         public string Username { get; set; } = "";
         public NetworkStream Stream { get; set; } = null!;
     }
@@ -64,7 +67,8 @@ namespace ChatServer
                 handler = new ClientHandler
                 {
                     Client = client,
-                    Stream = client.GetStream()
+                    Stream = client.GetStream(),
+                    UID = UIDGenerator.Generate() // Langsung buat UID saat koneksi dibuat
                 };
 
                 byte[] buffer = new byte[4096];
@@ -87,28 +91,30 @@ namespace ChatServer
                                 {
                                     clients.Add(handler);
                                 }
-                                Console.WriteLine($"{message.From} connected");
+                                Console.WriteLine($"{handler.Username} ({handler.UID}) connected");
 
-                                await SendUserListToClient(handler);
-
-                                await BroadcastSystemMessage($"{message.From} joined the chat");
+                                await BroadcastSystemMessage($"{handler.Username} joined the chat");
                                 await BroadcastUserList();
                                 break;
 
                             case "msg":
+                                // Selalu gunakan info dari sisi server untuk keamanan
+                                message.FromUID = handler.UID;
+                                message.From = handler.Username;
                                 await BroadcastMessage(message);
                                 break;
 
                             case "leave":
-                                Console.WriteLine($"{handler.Username} requested leave");
+                                Console.WriteLine($"{handler.Username} ({handler.UID}) requested leave");
+                                // Proses disconnect akan ditangani oleh blok 'finally'
                                 break;
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Client handling error: {ex.Message}");
+                // Error biasanya terjadi saat klien disconnect paksa, ini normal.
             }
             finally
             {
@@ -120,6 +126,7 @@ namespace ChatServer
                     }
                     if (!string.IsNullOrEmpty(handler.Username))
                     {
+                        Console.WriteLine($"{handler.Username} ({handler.UID}) disconnected.");
                         await BroadcastSystemMessage($"{handler.Username} left the chat");
                     }
                     await BroadcastUserList();
@@ -137,19 +144,16 @@ namespace ChatServer
         static async Task BroadcastMessage(Message message)
         {
             message.Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
             string json = JsonSerializer.Serialize(message) + "\n";
             byte[] data = Encoding.UTF8.GetBytes(json);
 
-            List<ClientHandler> snapshot;
+            List<ClientHandler> currentClients;
             lock (clientsLock)
             {
-                snapshot = clients.ToList();
+                currentClients = clients.ToList();
             }
 
-            var clientsToRemove = new List<ClientHandler>();
-
-            foreach (var client in snapshot)
+            foreach (var client in currentClients)
             {
                 try
                 {
@@ -160,16 +164,7 @@ namespace ChatServer
                 }
                 catch
                 {
-                    clientsToRemove.Add(client);
-                }
-            }
-
-            if (clientsToRemove.Count > 0)
-            {
-                lock (clientsLock)
-                {
-                    foreach (var c in clientsToRemove)
-                        clients.Remove(c);
+                    // Error saat mengirim akan ditangani oleh loop utama di HandleClientAsync
                 }
             }
         }
@@ -180,63 +175,30 @@ namespace ChatServer
             {
                 Type = "sys",
                 From = "System",
-                Text = text,
-                Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                Text = text
             };
-
             await BroadcastMessage(systemMessage);
-        }
-
-        static async Task SendUserListToClient(ClientHandler clientHandler)
-        {
-            var userList = GetOnlineUsernames();
-            var userListMessage = new Message
-            {
-                Type = "userlist",
-                From = "Server",
-                Text = JsonSerializer.Serialize(userList),
-                Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-            };
-
-            string json = JsonSerializer.Serialize(userListMessage) + "\n";
-            byte[] data = Encoding.UTF8.GetBytes(json);
-
-            try
-            {
-                if (clientHandler.Stream != null && clientHandler.Stream.CanWrite)
-                {
-                    await clientHandler.Stream.WriteAsync(data, 0, data.Length);
-                }
-            }
-            catch
-            {
-                // ignore write errors here; broadcast will handle removal if needed
-            }
         }
 
         static async Task BroadcastUserList()
         {
-            var userList = GetOnlineUsernames();
+            var userListPayload = GetOnlineUsers();
             var userListMessage = new Message
             {
                 Type = "userlist",
                 From = "Server",
-                Text = JsonSerializer.Serialize(userList),
-                Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                Text = JsonSerializer.Serialize(userListPayload)
             };
-
             await BroadcastMessage(userListMessage);
         }
 
-        static List<string> GetOnlineUsernames()
+        static Dictionary<string, string> GetOnlineUsers()
         {
             lock (clientsLock)
             {
                 return clients
                     .Where(c => !string.IsNullOrEmpty(c.Username))
-                    .Select(c => c.Username)
-                    .Distinct()
-                    .ToList();
+                    .ToDictionary(c => c.UID, c => c.Username);
             }
         }
     }
