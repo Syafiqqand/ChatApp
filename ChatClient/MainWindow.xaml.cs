@@ -206,7 +206,6 @@ namespace ChatClient
                         all = all.Substring(newlineIndex + 1);
                     }
 
-                    // keep leftover partial
                     sb.Clear();
                     sb.Append(all);
                 }

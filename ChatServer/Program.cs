@@ -89,10 +89,8 @@ namespace ChatServer
                                 }
                                 Console.WriteLine($"{message.From} connected");
 
-                                // Kirim daftar user khusus ke client yang baru
                                 await SendUserListToClient(handler);
 
-                                // Info system + update semua
                                 await BroadcastSystemMessage($"{message.From} joined the chat");
                                 await BroadcastUserList();
                                 break;
@@ -102,11 +100,7 @@ namespace ChatServer
                                 break;
 
                             case "leave":
-                                // Hapus broadcast di sini untuk menghindari duplikasi.
-                                // Biarkan proses penghapusan dan broadcast terjadi di blok finally
-                                // sehingga hanya satu notifikasi "left" yang dikirim.
                                 Console.WriteLine($"{handler.Username} requested leave");
-                                // Optionally, bisa melakukan tindakan lain, tapi jangan broadcast lagi di sini.
                                 break;
                         }
                     }
@@ -120,7 +114,6 @@ namespace ChatServer
             {
                 if (handler != null)
                 {
-                    // Hapus handler dan broadcast sekali tentang left
                     lock (clientsLock)
                     {
                         clients.Remove(handler);
