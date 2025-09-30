@@ -18,3 +18,23 @@ C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\refint
 C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.pdb
 C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.genruntimeconfig.cache
 C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\ref\ChatClient.dll
+C:\PJK\ChatApp\ChatClient\bin\Debug\net9.0-windows\ChatClient.exe
+C:\PJK\ChatApp\ChatClient\bin\Debug\net9.0-windows\ChatClient.deps.json
+C:\PJK\ChatApp\ChatClient\bin\Debug\net9.0-windows\ChatClient.runtimeconfig.json
+C:\PJK\ChatApp\ChatClient\bin\Debug\net9.0-windows\ChatClient.dll
+C:\PJK\ChatApp\ChatClient\bin\Debug\net9.0-windows\ChatClient.pdb
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\MainWindow.baml
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\MainWindow.g.cs
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\App.g.cs
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient_MarkupCompile.cache
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.g.resources
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.GeneratedMSBuildEditorConfig.editorconfig
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.AssemblyInfoInputs.cache
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.AssemblyInfo.cs
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.csproj.CoreCompileInputs.cache
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.sourcelink.json
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.dll
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\refint\ChatClient.dll
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.pdb
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.genruntimeconfig.cache
+C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ref\ChatClient.dll

@@ -13,3 +13,18 @@ c:\TUGAS\Pemrograman Jaringan\ChatApp\ChatServer\obj\Debug\net9.0\refint\ChatSer
 c:\TUGAS\Pemrograman Jaringan\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.pdb
 c:\TUGAS\Pemrograman Jaringan\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.genruntimeconfig.cache
 c:\TUGAS\Pemrograman Jaringan\ChatApp\ChatServer\obj\Debug\net9.0\ref\ChatServer.dll
+C:\PJK\ChatApp\ChatServer\bin\Debug\net9.0\ChatServer.exe
+C:\PJK\ChatApp\ChatServer\bin\Debug\net9.0\ChatServer.deps.json
+C:\PJK\ChatApp\ChatServer\bin\Debug\net9.0\ChatServer.runtimeconfig.json
+C:\PJK\ChatApp\ChatServer\bin\Debug\net9.0\ChatServer.dll
+C:\PJK\ChatApp\ChatServer\bin\Debug\net9.0\ChatServer.pdb
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.GeneratedMSBuildEditorConfig.editorconfig
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.AssemblyInfoInputs.cache
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.AssemblyInfo.cs
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.csproj.CoreCompileInputs.cache
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.sourcelink.json
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.dll
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\refint\ChatServer.dll
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.pdb
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ChatServer.genruntimeconfig.cache
+C:\PJK\ChatApp\ChatServer\obj\Debug\net9.0\ref\ChatServer.dll

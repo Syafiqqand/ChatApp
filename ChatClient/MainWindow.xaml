@@ -9,17 +9,52 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="#F0F0F0" BorderBrush="#D0D0D0" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="0,0,1,0">
+
             <StackPanel>
                 <TextBlock Text="Online Users" FontWeight="Bold" Padding="10" HorizontalAlignment="Center" Background="#E0E0E0" Margin="0,0,0,5"/>
                 <TextBlock Text="Double-click to PM" FontSize="10" HorizontalAlignment="Center" Foreground="Gray" Margin="0,0,0,5"/>
-                
+
                 <ListBox x:Name="lstOnlineUsers" 
                          Margin="5" 
                          BorderThickness="0"
                          Background="Transparent"
-                         MouseDoubleClick="lstOnlineUsers_MouseDoubleClick"/>
+                         MouseDoubleClick="lstOnlineUsers_MouseDoubleClick"
+                         HorizontalContentAlignment="Stretch">
+
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#E1E5EA" 
+                                    BorderBrush="#C5CBD3" 
+                                    BorderThickness="1" 
+                                    Margin="4,2">
+                                <TextBlock Text="{Binding}" 
+                                           Padding="10,5"
+                                           VerticalAlignment="Center" 
+                                           HorizontalAlignment="Left" 
+                                           Foreground="Black"
+                                           FontWeight="SemiBold"/>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
             </StackPanel>
+
         </Border>
 
         <Grid Grid.Column="1">
@@ -28,31 +63,37 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" BorderBrush="#D0D0D0" BorderThickness="0,0,0,1" Padding="5">
                 <StackPanel Orientation="Horizontal" Margin="5" VerticalAlignment="Top">
                     <StackPanel Orientation="Vertical" Margin="2">
                         <TextBlock Text="Alamat IP" FontSize="12" Margin="5,0,5,2"/>
+
                         <TextBox x:Name="txtServerIP" Text="127.0.0.1" Width="100" Margin="5,0"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Vertical" Margin="2">
                         <TextBlock Text="Port" FontSize="12" Margin="5,0,5,2"/>
+
                         <TextBox x:Name="txtPort" Text="8080" Width="50" Margin="5,0"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Vertical" Margin="2">
                         <TextBlock Text="Username" FontSize="12" Margin="5,0,5,2"/>
+
                         <TextBox x:Name="txtUsername" Width="140" Margin="5,0" ToolTip="Enter your username"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Vertical" Margin="8,0,0,0" VerticalAlignment="Bottom">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
                             <Button x:Name="btnConnect" Content="Connect" Click="btnConnect_Click" Margin="5" Width="80"/>
                             <Button x:Name="btnDisconnect" Content="Disconnect" Click="btnDisconnect_Click" Margin="5" Width="80" IsEnabled="False"/>
                         </StackPanel>
                     </StackPanel>
+
                 </StackPanel>
             </Border>
 
@@ -61,22 +102,26 @@
             <ListBox Grid.Row="2" x:Name="lstMessages" Margin="10,0,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
+
                         <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
 
             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10,0,10,10" VerticalAlignment="Center">
-                
+
+
                 <TextBlock x:Name="lblPmTarget" 
                            VerticalAlignment="Center" 
                            Margin="5,0" 
+                          
                            Foreground="DarkCyan" 
                            FontWeight="Bold" 
                            Visibility="Collapsed"/>
 
                 <TextBox x:Name="txtMessage" Width="400" Margin="5" KeyDown="txtMessage_KeyDown" IsEnabled="False"
-                         ToolTip="Type your message here"/>
+                      
+                          ToolTip="Type your message here"/>
                 <Button x:Name="btnSend" Content="Send" Click="btnSend_Click" Margin="5" Width="80" IsEnabled="False"/>
             </StackPanel>
         </Grid>
