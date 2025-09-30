@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "t2ciLnkugw83Ac58nby5B983Am5xWsUmnlyyHJh5A45Q1VlkKXbJB22xXG0VA88TUGMl6cWaDLb2WI74/0xzig==",
+  "dgSpecHash": "9IzFpoh4+4o=",
   "success": true,
   "projectFilePath": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\ChatServer.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.netcore.app.ref\\7.0.20\\microsoft.netcore.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\7.0.20\\microsoft.windowsdesktop.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\7.0.20\\microsoft.aspnetcore.app.ref.7.0.20.nupkg.sha512",
+    "C:\\Users\\Lenovo\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\7.0.20\\microsoft.netcore.app.host.win-x64.7.0.20.nupkg.sha512"
+  ],
   "logs": []
 }
