@@ -18,7 +18,8 @@ namespace ChatClient
         private TcpClient? client;
         private NetworkStream? stream;
         private bool isConnected = false;
-
+        private string? privateMessageTargetUID = null;
+        private string? privateMessageTargetUsername = null;
         // Menggunakan Dictionary untuk menyimpan user online: <UID, Username>
         private Dictionary<string, string> onlineUsers = new Dictionary<string, string>();
 
@@ -145,7 +146,17 @@ namespace ChatClient
             txtMessage.Clear();
             txtMessage.Focus();
 
-            Message message = CreateMessage("msg", messageText);
+            Message message;
+            // Jika ada target PM, buat pesan tipe "pmsg" dengan tujuan UID target
+            if (privateMessageTargetUID != null)
+            {
+                message = CreateMessage("pmsg", messageText, to: privateMessageTargetUID);
+            }
+            else // Jika tidak, buat pesan "msg" biasa (publik)
+            {
+                message = CreateMessage("msg", messageText);
+            }
+
             await SendMessageAsync(message);
         }
 
@@ -277,6 +288,19 @@ namespace ChatClient
                     displayText += $"SYSTEM: {message.Text}";
                     break;
                 case "join": // Pesan join/leave tidak lagi ditampilkan secara manual,
+                case "pmsg": // TAMBAHKAN CASE BARU INI
+                    // Pesan akan di-echo kembali oleh server, jadi kita cek pengirimnya
+                    if (message.From == txtUsername.Text) // Jika saya yang mengirim
+                    {
+                        // Cari username penerima dari dictionary `onlineUsers`
+                        string toUsername = onlineUsers.TryGetValue(message.To, out var name) ? name : "Unknown";
+                        displayText += $"[Private to {toUsername}]: {message.Text}";
+                    }
+                    else // Jika saya yang menerima
+                    {
+                        displayText += $"[Private from {message.From}]: {message.Text}";
+                    }
+                    break;
                 case "leave":// server mengirimkannya sebagai pesan 'sys'
                     return;
                 default:
@@ -292,6 +316,37 @@ namespace ChatClient
             if (lstMessages.Items.Count > 0)
             {
                 lstMessages.ScrollIntoView(lstMessages.Items[lstMessages.Items.Count - 1]);
+            }
+        }
+        
+        // TAMBAHKAN METODE BARU INI
+        private void lstOnlineUsers_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (lstOnlineUsers.SelectedItem == null) return;
+
+            string selectedUsername = lstOnlineUsers.SelectedItem.ToString()!;
+
+            // Cari UID berdasarkan username yang dipilih
+            var targetUserEntry = onlineUsers.FirstOrDefault(kvp => kvp.Value == selectedUsername);
+
+            // Jika tidak ditemukan, jangan lakukan apa-apa
+            if (string.IsNullOrEmpty(targetUserEntry.Key)) return;
+
+            // Jika double-click orang yang sama, batalkan mode PM
+            if (targetUserEntry.Key == privateMessageTargetUID)
+            {
+                privateMessageTargetUID = null;
+                privateMessageTargetUsername = null;
+                lblPmTarget.Visibility = Visibility.Collapsed;
+                txtMessage.Focus();
+            }
+            else // Jika memilih orang baru, masuk ke mode PM
+            {
+                privateMessageTargetUID = targetUserEntry.Key;
+                privateMessageTargetUsername = targetUserEntry.Value;
+                lblPmTarget.Text = $"> {privateMessageTargetUsername}:";
+                lblPmTarget.Visibility = Visibility.Visible;
+                txtMessage.Focus();
             }
         }
     }

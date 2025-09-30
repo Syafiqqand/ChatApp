@@ -104,6 +104,13 @@ namespace ChatServer
                                 await BroadcastMessage(message);
                                 break;
 
+                            case "pmsg": // TAMBAHKAN CASE BARU INI
+                                // Info pengirim diambil dari sisi server untuk keamanan
+                                message.FromUID = handler.UID;
+                                message.From = handler.Username;
+                                await SendPrivateMessageAsync(message);
+                                break;
+
                             case "leave":
                                 Console.WriteLine($"{handler.Username} ({handler.UID}) requested leave");
                                 // Proses disconnect akan ditangani oleh blok 'finally'
@@ -199,6 +206,54 @@ namespace ChatServer
                 return clients
                     .Where(c => !string.IsNullOrEmpty(c.Username))
                     .ToDictionary(c => c.UID, c => c.Username);
+            }
+        }
+        
+        static async Task SendPrivateMessageAsync(Message message)
+        {
+            string recipientUID = message.To;
+            string senderUID = message.FromUID;
+            message.Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            ClientHandler? recipient = null;
+            ClientHandler? sender = null;
+
+            lock (clientsLock)
+            {
+                recipient = clients.FirstOrDefault(c => c.UID == recipientUID);
+                sender = clients.FirstOrDefault(c => c.UID == senderUID);
+            }
+
+            // Pastikan penerima dan pengirim ada (masih online)
+            if (recipient != null && sender != null)
+            {
+                string json = JsonSerializer.Serialize(message) + "\n";
+                byte[] data = Encoding.UTF8.GetBytes(json);
+
+                try
+                {
+                    // 1. Kirim pesan ke penerima
+                    if (recipient.Stream.CanWrite)
+                    {
+                        await recipient.Stream.WriteAsync(data, 0, data.Length);
+                    }
+                }
+                catch { /* Penerima mungkin disconnect saat pesan dikirim */ }
+
+                try
+                {
+                    // 2. Kirim "echo" pesan kembali ke pengirim agar muncul di chatbox mereka
+                    if (sender.Stream.CanWrite)
+                    {
+                        await sender.Stream.WriteAsync(data, 0, data.Length);
+                    }
+                }
+                catch { /* Pengirim mungkin disconnect */ }
+            }
+            else
+            {
+                // Opsional: kirim pesan error ke pengirim jika target tidak ditemukan
+                // Untuk saat ini, kita abaikan saja jika target offline.
             }
         }
     }
