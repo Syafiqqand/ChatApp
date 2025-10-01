@@ -1,15 +1,16 @@
 ﻿// MainWindow.xaml.cs
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Collections.Generic;
-using System.Linq;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace ChatClient
 {
@@ -20,19 +21,28 @@ namespace ChatClient
         private bool isConnected = false;
         private string? privateMessageTargetUID = null;
         private string? privateMessageTargetUsername = null;
-        // Menggunakan Dictionary untuk menyimpan user online: <UID, Username>
         private Dictionary<string, string> onlineUsers = new Dictionary<string, string>();
+
+        private DispatcherTimer typingTimer;
+        private bool isTyping = false;
+        private readonly Dictionary<string, string> typingUsers = new Dictionary<string, string>();
+        private readonly Dictionary<string, DispatcherTimer> userTypingTimers = new Dictionary<string, DispatcherTimer>();
 
         public MainWindow()
         {
             InitializeComponent();
             txtUsername.Text = "";
             txtUsername.Focus();
+
+            typingTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            typingTimer.Tick += TypingTimer_Tick;
         }
 
         public Message CreateMessage(string type, string text, string to = "")
         {
-            // Klien hanya mengirimkan username. UID akan di-assign oleh server.
             return new Message
             {
                 Type = type,
@@ -47,16 +57,9 @@ namespace ChatClient
         {
             if (isConnected) return;
 
-            if (string.IsNullOrWhiteSpace(txtUsername.Text))
+            if (string.IsNullOrWhiteSpace(txtUsername.Text) || txtUsername.Text.Length > 20 || txtUsername.Text.Contains(":") || txtUsername.Text.Contains("/"))
             {
-                MessageBox.Show("Please enter a username before connecting.", "Username Required", MessageBoxButton.OK, MessageBoxImage.Warning);
-                txtUsername.Focus();
-                return;
-            }
-
-            if (txtUsername.Text.Contains(":") || txtUsername.Text.Contains("/") || txtUsername.Text.Length > 20)
-            {
-                MessageBox.Show("Username cannot contain ':' or '/' and must be less than 20 characters.", "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Username cannot be empty, contain ':' or '/', and must be less than 20 characters.", "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtUsername.Focus();
                 return;
             }
@@ -89,8 +92,10 @@ namespace ChatClient
             txtServerIP.IsEnabled = !connected;
             txtPort.IsEnabled = !connected;
             txtUsername.IsEnabled = !connected;
+
             txtStatus.Text = connected ? "Connected" : "Disconnected";
-            txtStatus.Foreground = connected ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+            var statusColorKey = connected ? "Text.Connected" : "Text.Disconnected";
+            txtStatus.SetResourceReference(TextBlock.ForegroundProperty, statusColorKey);
         }
 
         private async void btnDisconnect_Click(object sender, RoutedEventArgs e)
@@ -139,20 +144,25 @@ namespace ChatClient
 
         private async Task SendChatMessage()
         {
-            if (!isConnected || string.IsNullOrWhiteSpace(txtMessage.Text))
-                return;
+            if (!isConnected || string.IsNullOrWhiteSpace(txtMessage.Text)) return;
+
+            if (isTyping)
+            {
+                typingTimer.Stop();
+                await SendTypingNotification(false);
+                isTyping = false;
+            }
 
             string messageText = txtMessage.Text.Trim();
             txtMessage.Clear();
             txtMessage.Focus();
 
             Message message;
-            // Jika ada target PM, buat pesan tipe "pmsg" dengan tujuan UID target
             if (privateMessageTargetUID != null)
             {
                 message = CreateMessage("pmsg", messageText, to: privateMessageTargetUID);
             }
-            else // Jika tidak, buat pesan "msg" biasa (publik)
+            else
             {
                 message = CreateMessage("msg", messageText);
             }
@@ -194,7 +204,7 @@ namespace ChatClient
                     int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0)
                     {
-                        Dispatcher.Invoke(() => Disconnect());
+                        Dispatcher.Invoke(Disconnect);
                         break;
                     }
 
@@ -225,10 +235,7 @@ namespace ChatClient
                 }
                 catch (Exception)
                 {
-                    if (isConnected)
-                    {
-                        Dispatcher.Invoke(() => Disconnect());
-                    }
+                    if (isConnected) Dispatcher.Invoke(Disconnect);
                     break;
                 }
             }
@@ -241,7 +248,14 @@ namespace ChatClient
                 case "userlist":
                     UpdateOnlineUsersList(message.Text);
                     break;
+                case "start_typing":
+                    HandleUserTyping(message.FromUID, message.From, true);
+                    break;
+                case "stop_typing":
+                    HandleUserTyping(message.FromUID, message.From, false);
+                    break;
                 default:
+                    HandleUserTyping(message.FromUID, message.From, false);
                     DisplayMessage(message);
                     break;
             }
@@ -258,18 +272,13 @@ namespace ChatClient
 
                 lstOnlineUsers.Items.Clear();
 
-                // Ambil semua username (Values), urutkan, lalu tampilkan
-                var usersToShow = onlineUsers.Values
-                    .Where(u => !string.IsNullOrEmpty(u))
-                    .OrderBy(u => u)
-                    .ToList();
+                var usersToShow = onlineUsers.Values.Where(u => !string.IsNullOrEmpty(u)).OrderBy(u => u).ToList();
 
                 foreach (var user in usersToShow)
                 {
                     lstOnlineUsers.Items.Add(user);
                 }
 
-                // Judul window sekarang menampilkan jumlah koneksi unik
                 this.Title = $"Chat Client - Online: {onlineUsers.Count} users";
             }
             catch (Exception ex)
@@ -287,21 +296,19 @@ namespace ChatClient
                 case "sys":
                     displayText += $"SYSTEM: {message.Text}";
                     break;
-                case "join": // Pesan join/leave tidak lagi ditampilkan secara manual,
-                case "pmsg": // TAMBAHKAN CASE BARU INI
-                    // Pesan akan di-echo kembali oleh server, jadi kita cek pengirimnya
-                    if (message.From == txtUsername.Text) // Jika saya yang mengirim
+                case "pmsg":
+                    if (message.From == txtUsername.Text)
                     {
-                        // Cari username penerima dari dictionary `onlineUsers`
                         string toUsername = onlineUsers.TryGetValue(message.To, out var name) ? name : "Unknown";
                         displayText += $"[Private to {toUsername}]: {message.Text}";
                     }
-                    else // Jika saya yang menerima
+                    else
                     {
                         displayText += $"[Private from {message.From}]: {message.Text}";
                     }
                     break;
-                case "leave":// server mengirimkannya sebagai pesan 'sys'
+                case "join":
+                case "leave":
                     return;
                 default:
                     displayText += $"{message.From}: {message.Text}";
@@ -318,40 +325,123 @@ namespace ChatClient
                 lstMessages.ScrollIntoView(lstMessages.Items[lstMessages.Items.Count - 1]);
             }
         }
-        
-        // TAMBAHKAN METODE BARU INI
+
         private void lstOnlineUsers_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (lstOnlineUsers.SelectedItem == null) return;
-
             string selectedUsername = lstOnlineUsers.SelectedItem.ToString()!;
-
-            // Cari UID berdasarkan username yang dipilih
             var targetUserEntry = onlineUsers.FirstOrDefault(kvp => kvp.Value == selectedUsername);
 
-            // Jika tidak ditemukan, jangan lakukan apa-apa
-            if (string.IsNullOrEmpty(targetUserEntry.Key)) return;
+            if (string.IsNullOrEmpty(targetUserEntry.Key) || targetUserEntry.Value == txtUsername.Text) return;
 
-            // Jika double-click orang yang sama, batalkan mode PM
             if (targetUserEntry.Key == privateMessageTargetUID)
             {
                 privateMessageTargetUID = null;
                 privateMessageTargetUsername = null;
                 lblPmTarget.Visibility = Visibility.Collapsed;
-                txtMessage.Focus();
             }
-            else // Jika memilih orang baru, masuk ke mode PM
+            else
             {
                 privateMessageTargetUID = targetUserEntry.Key;
                 privateMessageTargetUsername = targetUserEntry.Value;
                 lblPmTarget.Text = $"> {privateMessageTargetUsername}:";
                 lblPmTarget.Visibility = Visibility.Visible;
-                txtMessage.Focus();
             }
+            txtMessage.Focus();
+        }
+
+        public void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton)
+            {
+                ApplyTheme(toggleButton.IsChecked == true ? "DarkTheme" : "LightTheme");
+            }
+        }
+
+        private void ApplyTheme(string themeName)
+        {
+            var existingDict = Application.Current.Resources.MergedDictionaries.FirstOrDefault(d => d.Source != null && d.Source.OriginalString.Contains("Theme"));
+            if (existingDict != null)
+            {
+                Application.Current.Resources.MergedDictionaries.Remove(existingDict);
+            }
+            var newDict = new ResourceDictionary { Source = new Uri($"Themes/{themeName}.xaml", UriKind.Relative) };
+            Application.Current.Resources.MergedDictionaries.Add(newDict);
+        }
+
+        private async Task SendTypingNotification(bool isStarting)
+        {
+            var message = CreateMessage(isStarting ? "start_typing" : "stop_typing", "", to: privateMessageTargetUID ?? "");
+            await SendMessageAsync(message);
+        }
+
+        private async void txtMessage_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!isConnected) return;
+            typingTimer.Stop();
+
+            if (!isTyping)
+            {
+                isTyping = true;
+                await SendTypingNotification(true);
+            }
+            typingTimer.Start();
+        }
+
+        private async void TypingTimer_Tick(object? sender, EventArgs e)
+        {
+            typingTimer.Stop();
+            isTyping = false;
+            await SendTypingNotification(false);
+        }
+
+        private void HandleUserTyping(string uid, string username, bool isStarting)
+        {
+            if (string.IsNullOrEmpty(uid) || uid == "Server") return;
+
+            if (isStarting)
+            {
+                typingUsers[uid] = username;
+                if (userTypingTimers.TryGetValue(uid, out var timer))
+                {
+                    timer.Stop();
+                }
+                else
+                {
+                    timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+                    timer.Tick += (s, e) => {
+                        HandleUserTyping(uid, username, false);
+                        (s as DispatcherTimer)?.Stop();
+                    };
+                    userTypingTimers[uid] = timer;
+                }
+                timer.Start();
+            }
+            else
+            {
+                typingUsers.Remove(uid);
+                if (userTypingTimers.TryGetValue(uid, out var timer))
+                {
+                    timer.Stop();
+                    userTypingTimers.Remove(uid);
+                }
+            }
+            UpdateTypingStatusLabel();
+        }
+
+        private void UpdateTypingStatusLabel()
+        {
+            var names = typingUsers.Values.ToList();
+            string statusText = "";
+
+            if (names.Count == 1) statusText = $"{names[0]} is typing...";
+            else if (names.Count == 2) statusText = $"{names[0]} and {names[1]} are typing...";
+            else if (names.Count > 2) statusText = "Several people are typing...";
+
+            lblTypingStatus.Text = statusText;
         }
     }
 
-    // Definisi class Message agar file ini bisa berdiri sendiri.
     public class Message
     {
         public string Type { get; set; } = "";

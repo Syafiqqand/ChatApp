@@ -38,3 +38,7 @@ C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\refint\ChatClient.dll
 C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.pdb
 C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient.genruntimeconfig.cache
 C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\ref\ChatClient.dll
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\Themes\DarkTheme.baml
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\Themes\LightTheme.baml
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\ChatClient_MarkupCompile.lref
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\App.baml

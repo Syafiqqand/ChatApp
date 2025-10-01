@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\PJK\ChatApp\ChatClient\obj\Debug\net9.0-windows\
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\obj\Debug\net9.0-windows\
 ChatClient
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-C:\PJK\ChatApp\ChatClient\App.xaml
-11407045341
+C:\TUGAS\Pemrograman Jaringan\ChatApp\ChatClient\App.xaml
+3560956000
 
 4-871366647
 200-1531957912
-MainWindow.xaml;
+MainWindow.xaml;Themes\DarkTheme.xaml;Themes\LightTheme.xaml;
 
 False
 

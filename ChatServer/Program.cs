@@ -13,8 +13,8 @@ namespace ChatServer
     public class Message
     {
         public string Type { get; set; } = "";
-        public string FromUID { get; set; } = ""; // ID Unik Pengirim
-        public string From { get; set; } = "";    // Username Pengirim
+        public string FromUID { get; set; } = "";
+        public string From { get; set; } = "";
         public string To { get; set; } = "";
         public string Text { get; set; } = "";
         public long Ts { get; set; }
@@ -23,7 +23,7 @@ namespace ChatServer
     public class ClientHandler
     {
         public TcpClient Client { get; set; } = null!;
-        public string UID { get; set; } = ""; // Properti untuk menyimpan ID Unik
+        public string UID { get; set; } = "";
         public string Username { get; set; } = "";
         public NetworkStream Stream { get; set; } = null!;
     }
@@ -68,7 +68,7 @@ namespace ChatServer
                 {
                     Client = client,
                     Stream = client.GetStream(),
-                    UID = UIDGenerator.Generate() // Langsung buat UID saat koneksi dibuat
+                    UID = UIDGenerator.Generate() // Memanggil dari file UIDHandler.cs Anda
                 };
 
                 byte[] buffer = new byte[4096];
@@ -83,37 +83,49 @@ namespace ChatServer
                         var message = JsonSerializer.Deserialize<Message>(part);
                         if (message == null) continue;
 
+                        if (message.Type == "join")
+                        {
+                            handler.Username = message.From;
+                            lock (clientsLock)
+                            {
+                                clients.Add(handler);
+                            }
+                            Console.WriteLine($"{handler.Username} ({handler.UID}) connected");
+
+                            message.FromUID = handler.UID;
+
+                            await BroadcastSystemMessage($"{handler.Username} joined the chat");
+                            await BroadcastUserList();
+                            continue;
+                        }
+
+                        message.FromUID = handler.UID;
+                        message.From = handler.Username;
+
                         switch (message.Type)
                         {
-                            case "join":
-                                handler.Username = message.From;
-                                lock (clientsLock)
-                                {
-                                    clients.Add(handler);
-                                }
-                                Console.WriteLine($"{handler.Username} ({handler.UID}) connected");
-
-                                await BroadcastSystemMessage($"{handler.Username} joined the chat");
-                                await BroadcastUserList();
-                                break;
-
                             case "msg":
-                                // Selalu gunakan info dari sisi server untuk keamanan
-                                message.FromUID = handler.UID;
-                                message.From = handler.Username;
                                 await BroadcastMessage(message);
                                 break;
 
-                            case "pmsg": // TAMBAHKAN CASE BARU INI
-                                // Info pengirim diambil dari sisi server untuk keamanan
-                                message.FromUID = handler.UID;
-                                message.From = handler.Username;
+                            case "pmsg":
                                 await SendPrivateMessageAsync(message);
+                                break;
+
+                            case "start_typing":
+                            case "stop_typing":
+                                if (string.IsNullOrEmpty(message.To))
+                                {
+                                    await BroadcastToOthersAsync(message);
+                                }
+                                else
+                                {
+                                    await ForwardMessageAsync(message);
+                                }
                                 break;
 
                             case "leave":
                                 Console.WriteLine($"{handler.Username} ({handler.UID}) requested leave");
-                                // Proses disconnect akan ditangani oleh blok 'finally'
                                 break;
                         }
                     }
@@ -208,7 +220,7 @@ namespace ChatServer
                     .ToDictionary(c => c.UID, c => c.Username);
             }
         }
-        
+
         static async Task SendPrivateMessageAsync(Message message)
         {
             string recipientUID = message.To;
@@ -224,7 +236,6 @@ namespace ChatServer
                 sender = clients.FirstOrDefault(c => c.UID == senderUID);
             }
 
-            // Pastikan penerima dan pengirim ada (masih online)
             if (recipient != null && sender != null)
             {
                 string json = JsonSerializer.Serialize(message) + "\n";
@@ -232,7 +243,6 @@ namespace ChatServer
 
                 try
                 {
-                    // 1. Kirim pesan ke penerima
                     if (recipient.Stream.CanWrite)
                     {
                         await recipient.Stream.WriteAsync(data, 0, data.Length);
@@ -242,7 +252,6 @@ namespace ChatServer
 
                 try
                 {
-                    // 2. Kirim "echo" pesan kembali ke pengirim agar muncul di chatbox mereka
                     if (sender.Stream.CanWrite)
                     {
                         await sender.Stream.WriteAsync(data, 0, data.Length);
@@ -250,10 +259,55 @@ namespace ChatServer
                 }
                 catch { /* Pengirim mungkin disconnect */ }
             }
-            else
+        }
+
+        static async Task ForwardMessageAsync(Message message)
+        {
+            ClientHandler? recipient;
+            lock (clientsLock)
             {
-                // Opsional: kirim pesan error ke pengirim jika target tidak ditemukan
-                // Untuk saat ini, kita abaikan saja jika target offline.
+                recipient = clients.FirstOrDefault(c => c.UID == message.To);
+            }
+
+            if (recipient != null)
+            {
+                try
+                {
+                    if (recipient.Stream.CanWrite)
+                    {
+                        string json = JsonSerializer.Serialize(message) + "\n";
+                        byte[] data = Encoding.UTF8.GetBytes(json);
+                        await recipient.Stream.WriteAsync(data, 0, data.Length);
+                    }
+                }
+                catch { /* Abaikan jika gagal mengirim ke target */ }
+            }
+        }
+
+        static async Task BroadcastToOthersAsync(Message message)
+        {
+            string json = JsonSerializer.Serialize(message) + "\n";
+            byte[] data = Encoding.UTF8.GetBytes(json);
+
+            List<ClientHandler> currentClients;
+            lock (clientsLock)
+            {
+                currentClients = clients.ToList();
+            }
+
+            foreach (var client in currentClients)
+            {
+                if (client.UID != message.FromUID)
+                {
+                    try
+                    {
+                        if (client.Stream.CanWrite)
+                        {
+                            await client.Stream.WriteAsync(data, 0, data.Length);
+                        }
+                    }
+                    catch { /* Abaikan jika gagal mengirim */ }
+                }
             }
         }
     }
