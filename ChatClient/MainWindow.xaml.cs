@@ -16,12 +16,15 @@ namespace ChatClient
 {
     public partial class MainWindow : Window
     {
+        //variabel untuk koneksi jaringan
         private TcpClient? client;
         private NetworkStream? stream;
         private bool isConnected = false;
+
+        //variabel untuk fitur PM
         private string? privateMessageTargetUID = null;
         private string? privateMessageTargetUsername = null;
-        private Dictionary<string, string> onlineUsers = new Dictionary<string, string>();
+        private Dictionary<string, string> onlineUsers = new Dictionary<string, string>(); //nyimpan data client yang online
 
         private DispatcherTimer typingTimer;
         private bool isTyping = false;
@@ -34,6 +37,7 @@ namespace ChatClient
             txtUsername.Text = "";
             txtUsername.Focus();
 
+            //mengatur timer untuk notifikasi typing
             typingTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(2)
@@ -41,6 +45,7 @@ namespace ChatClient
             typingTimer.Tick += TypingTimer_Tick;
         }
 
+        //fungsi bantuan untuk membuat objek Message 
         public Message CreateMessage(string type, string text, string to = "")
         {
             return new Message
@@ -53,10 +58,12 @@ namespace ChatClient
             };
         }
 
+        //fungsi saat button connect di klik
         private async void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             if (isConnected) return;
 
+            //validasi usn
             if (string.IsNullOrWhiteSpace(txtUsername.Text) || txtUsername.Text.Length > 20 || txtUsername.Text.Contains(":") || txtUsername.Text.Contains("/"))
             {
                 MessageBox.Show("Username cannot be empty, contain ':' or '/', and must be less than 20 characters.", "Invalid Username", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -66,6 +73,7 @@ namespace ChatClient
 
             try
             {
+                //koneksi ke server
                 client = new TcpClient();
                 await client.ConnectAsync(txtServerIP.Text, int.Parse(txtPort.Text));
                 stream = client.GetStream();
@@ -83,6 +91,7 @@ namespace ChatClient
             }
         }
 
+        //mengatur UI (aktif/nonaktifkan tombol dan input berdasarkan status koneksi)
         private void UpdateConnectionStatus(bool connected)
         {
             btnConnect.IsEnabled = !connected;
@@ -98,6 +107,7 @@ namespace ChatClient
             txtStatus.SetResourceReference(TextBlock.ForegroundProperty, statusColorKey);
         }
 
+        //saat tombol dc di klik
         private async void btnDisconnect_Click(object sender, RoutedEventArgs e)
         {
             if (!isConnected) return;
@@ -112,6 +122,7 @@ namespace ChatClient
             Disconnect();
         }
 
+        //membersihkan dan memutus koneksi dri server
         private void Disconnect()
         {
             isConnected = false;
@@ -134,6 +145,7 @@ namespace ChatClient
             await SendChatMessage();
         }
 
+        //ketika klik tombol enter == kirim pesan/send
         private async void txtMessage_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -142,6 +154,7 @@ namespace ChatClient
             }
         }
 
+        //fungsi utama untuk kirim chat
         private async Task SendChatMessage()
         {
             if (!isConnected || string.IsNullOrWhiteSpace(txtMessage.Text)) return;
@@ -170,6 +183,7 @@ namespace ChatClient
             await SendMessageAsync(message);
         }
 
+        // Mengubah pesan menjadi format JSON dan mengirimkannya ke server melalui stream.
         private async Task SendMessageAsync(Message message)
         {
             try
@@ -190,6 +204,7 @@ namespace ChatClient
             }
         }
 
+        //fungsi yg jalan di background, terus menerus mendengarkan data yang masuk dari server
         private async Task ReceiveMessagesAsync()
         {
             if (stream == null) return;
@@ -208,6 +223,7 @@ namespace ChatClient
                         break;
                     }
 
+                    // Mengubah data byte menjadi string dan memprosesnya
                     string chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     sb.Append(chunk);
 
@@ -241,6 +257,7 @@ namespace ChatClient
             }
         }
 
+        //memproses pesan yang diterima dari server berdasarkan tipenya
         private void ProcessMessage(Message message)
         {
             switch (message.Type)
@@ -261,6 +278,7 @@ namespace ChatClient
             }
         }
 
+        //memperbarui user list yang online
         private void UpdateOnlineUsersList(string userListJson = "")
         {
             try
@@ -287,6 +305,7 @@ namespace ChatClient
             }
         }
 
+        //menampilkan pesan yang diterima ke dalam kolom chat
         private void DisplayMessage(Message message)
         {
             string displayText = $"[{DateTime.Now:HH:mm}] ";
@@ -317,6 +336,7 @@ namespace ChatClient
             AddMessage(message.From, displayText);
         }
 
+        // Menambahkan teks ke listbox pesan dan otomatis scroll ke bawah
         private void AddMessage(string sender, string text)
         {
             lstMessages.Items.Add(text);
@@ -326,6 +346,7 @@ namespace ChatClient
             }
         }
 
+        //fungsi untuk memulai PM saat user list di double click
         private void lstOnlineUsers_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (lstOnlineUsers.SelectedItem == null) return;
@@ -334,6 +355,7 @@ namespace ChatClient
 
             if (string.IsNullOrEmpty(targetUserEntry.Key) || targetUserEntry.Value == txtUsername.Text) return;
 
+            //jika target yang sama di-klik lagi, batalkan PM
             if (targetUserEntry.Key == privateMessageTargetUID)
             {
                 privateMessageTargetUID = null;
@@ -350,6 +372,7 @@ namespace ChatClient
             txtMessage.Focus();
         }
 
+        // Dijalankan saat toggle light/dark mode di-klik
         public void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleButton toggleButton)
@@ -358,6 +381,7 @@ namespace ChatClient
             }
         }
 
+        // Mengganti file resource dictionary (XAML) untuk mengubah tema aplikasi.
         private void ApplyTheme(string themeName)
         {
             var existingDict = Application.Current.Resources.MergedDictionaries.FirstOrDefault(d => d.Source != null && d.Source.OriginalString.Contains("Theme"));
@@ -369,12 +393,14 @@ namespace ChatClient
             Application.Current.Resources.MergedDictionaries.Add(newDict);
         }
 
+        // Mengirim notifikasi "typing" ke server
         private async Task SendTypingNotification(bool isStarting)
         {
             var message = CreateMessage(isStarting ? "start_typing" : "stop_typing", "", to: privateMessageTargetUID ?? "");
             await SendMessageAsync(message);
         }
 
+        // Dijalankan setiap kali teks di kotak pesan berubah
         private async void txtMessage_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (!isConnected) return;
@@ -388,6 +414,7 @@ namespace ChatClient
             typingTimer.Start();
         }
 
+        // Dijalankan ketika timer `typingTimer` selesai == berhenti mengetik
         private async void TypingTimer_Tick(object? sender, EventArgs e)
         {
             typingTimer.Stop();
@@ -395,6 +422,7 @@ namespace ChatClient
             await SendTypingNotification(false);
         }
 
+        //menangani notifikasi "typing" yang diterima dari user lain
         private void HandleUserTyping(string uid, string username, bool isStarting)
         {
             if (string.IsNullOrEmpty(uid) || uid == "Server") return;
@@ -429,6 +457,7 @@ namespace ChatClient
             UpdateTypingStatusLabel();
         }
 
+        // Memperbarui teks label di UI untuk menunjukkan siapa yang sedang mengetik
         private void UpdateTypingStatusLabel()
         {
             var names = typingUsers.Values.ToList();
@@ -442,6 +471,7 @@ namespace ChatClient
         }
     }
 
+    // Cetakan untuk data Message, harus sama persis dengan yang ada di sisi server
     public class Message
     {
         public string Type { get; set; } = "";

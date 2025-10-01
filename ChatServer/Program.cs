@@ -1,5 +1,4 @@
-﻿// Program.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -10,6 +9,7 @@ using System.Linq;
 
 namespace ChatServer
 {
+    //menentukan struktur atau kerangka data untuk setiap pesan yang dikirim
     public class Message
     {
         public string Type { get; set; } = "";
@@ -20,6 +20,7 @@ namespace ChatServer
         public long Ts { get; set; }
     }
 
+    //menyimpan semua informasi tentang satu client yang terhubung
     public class ClientHandler
     {
         public TcpClient Client { get; set; } = null!;
@@ -34,6 +35,8 @@ namespace ChatServer
         private static TcpListener server = null!;
         private static readonly object clientsLock = new object();
 
+        //fungsi utama yang pertama kali dijalankan saat server dinyalakan
+        //fungsinya memulai server dan terus-menerus menunggu koneksi baru dari client
         static async Task Main(string[] args)
         {
             Console.WriteLine("Starting Chat Server...");
@@ -59,6 +62,7 @@ namespace ChatServer
             }
         }
 
+        //mengurus semua komunikasi untuk satu client mulai dari menerima pesan hingga saat client disconnect
         static async Task HandleClientAsync(TcpClient client)
         {
             ClientHandler? handler = null;
@@ -133,7 +137,7 @@ namespace ChatServer
             }
             catch (Exception)
             {
-                // Error biasanya terjadi saat klien disconnect paksa, ini normal.
+                //trjadi error saat klien disconnect paksa
             }
             finally
             {
@@ -160,6 +164,7 @@ namespace ChatServer
             }
         }
 
+        //mengirimkan pesan ke semua client
         static async Task BroadcastMessage(Message message)
         {
             message.Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -188,6 +193,7 @@ namespace ChatServer
             }
         }
 
+        //untuk menyiarkan pesan dari sistem
         static async Task BroadcastSystemMessage(string text)
         {
             var systemMessage = new Message
@@ -199,6 +205,7 @@ namespace ChatServer
             await BroadcastMessage(systemMessage);
         }
 
+        //mengirim semua user yg online ke client
         static async Task BroadcastUserList()
         {
             var userListPayload = GetOnlineUsers();
@@ -211,6 +218,7 @@ namespace ChatServer
             await BroadcastMessage(userListMessage);
         }
 
+        //mengambil data dari semua client
         static Dictionary<string, string> GetOnlineUsers()
         {
             lock (clientsLock)
@@ -221,6 +229,7 @@ namespace ChatServer
             }
         }
 
+        //fungsi untuk private message
         static async Task SendPrivateMessageAsync(Message message)
         {
             string recipientUID = message.To;
@@ -261,6 +270,7 @@ namespace ChatServer
             }
         }
 
+        //mengirim pesan seperti notif typing ke 1 client tertentu (PM)
         static async Task ForwardMessageAsync(Message message)
         {
             ClientHandler? recipient;
@@ -284,6 +294,7 @@ namespace ChatServer
             }
         }
 
+        //fungsi ini mengirim pesan ke semua client kecuali si pengirim asli
         static async Task BroadcastToOthersAsync(Message message)
         {
             string json = JsonSerializer.Serialize(message) + "\n";

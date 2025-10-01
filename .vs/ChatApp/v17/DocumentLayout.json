@@ -7,28 +7,28 @@
       "RelativeMoniker": "D:0:0:{35EC1675-5438-4BA0-8373-05350BB0B4E9}|ChatServer\\ChatServer.csproj|solutionrelative:chatserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\themes\\darktheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\themes\\darktheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{35EC1675-5438-4BA0-8373-05350BB0B4E9}|ChatServer\\ChatServer.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatserver\\uidhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{35EC1675-5438-4BA0-8373-05350BB0B4E9}|ChatServer\\ChatServer.csproj|solutionrelative:chatserver\\uidhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\themes\\darktheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\themes\\darktheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\themes\\lighttheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\themes\\lighttheme.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatclient\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D0EE639D-0786-46C1-83EF-CDDF3DC77637}|ChatClient\\ChatClient.csproj|solutionrelative:chatclient\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{35EC1675-5438-4BA0-8373-05350BB0B4E9}|ChatServer\\ChatServer.csproj|c:\\tugas\\pemrograman jaringan\\chatapp\\chatserver\\uidhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{35EC1675-5438-4BA0-8373-05350BB0B4E9}|ChatServer\\ChatServer.csproj|solutionrelative:chatserver\\uidhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -52,27 +52,27 @@
               "RelativeDocumentMoniker": "ChatServer\\Program.cs",
               "ToolTip": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\Program.cs",
               "RelativeToolTip": "ChatServer\\Program.cs",
-              "ViewState": "AgIAABsBAAAAAAAAAADwvyYBAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-01T05:02:32.739Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "ChatClient\\MainWindow.xaml.cs",
               "ToolTip": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\MainWindow.xaml.cs",
               "RelativeToolTip": "ChatClient\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAK8BAAAAAAAAAAAywMEBAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAALcBAAAAAAAAAAAowMsBAABUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-01T04:46:09.386Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 2,
               "Title": "App.xaml",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\App.xaml",
               "RelativeDocumentMoniker": "ChatClient\\App.xaml",
@@ -84,7 +84,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "DarkTheme.xaml",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\Themes\\DarkTheme.xaml",
               "RelativeDocumentMoniker": "ChatClient\\Themes\\DarkTheme.xaml",
@@ -96,7 +96,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 4,
               "Title": "LightTheme.xaml",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\Themes\\LightTheme.xaml",
               "RelativeDocumentMoniker": "ChatClient\\Themes\\LightTheme.xaml",
@@ -108,20 +108,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "UIDHandler.cs",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\UIDHandler.cs",
               "RelativeDocumentMoniker": "ChatServer\\UIDHandler.cs",
               "ToolTip": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatServer\\UIDHandler.cs",
               "RelativeToolTip": "ChatServer\\UIDHandler.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-30T15:51:44.266Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-30T15:51:44.266Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\TUGAS\\Pemrograman Jaringan\\ChatApp\\ChatClient\\MainWindow.xaml",
               "RelativeDocumentMoniker": "ChatClient\\MainWindow.xaml",
